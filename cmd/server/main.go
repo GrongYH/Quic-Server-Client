@@ -53,8 +53,8 @@ func main() {
 }
 
 func startQUICServer() (err error) {
-	hostName := flag.String("hostname", "localhost", "hostname/ip of the server")
-	portNum := flag.String("port", "4240", "port number of the server")
+	hostName := flag.String("hostname", "124.160.115.141", "hostname/ip of the server")
+	portNum := flag.String("port", "18466", "port number of the server")
 
 	flag.Parse()
 
@@ -67,15 +67,14 @@ func startQUICServer() (err error) {
 		return
 	}
 	defer listener.Close()
-
 	for {
 		sess, err := listener.Accept(context.Background())
 		if err != nil {
-			panic(err)
+			break
 		}
 		stream, err := sess.AcceptStream(context.Background())
 		if err != nil {
-			panic(err)
+			break
 		}
 		go func(stream quic.Stream) {
 			defer stream.Close()
@@ -87,17 +86,20 @@ func startQUICServer() (err error) {
 				sb.Write(b[:n])
 				req := new(Request)
 				println(sb.String())
-				_ = json.Unmarshal([]byte(sb.String()), req)
+				json.Unmarshal([]byte(sb.String()), req)
 				fmt.Println(req)
 				remain := req.Size
 				if remain <= 0 {
 					return
 				}
 				buf := make([]byte, remain)
-				rand.Read(buf)
+				for i := 0; i < remain; i++ {
+					buf[i] = '1'
+				}
 				fmt.Printf("已经发送%s", buf)
 				stream.Write(buf)
 			}
 		}(stream)
 	}
+	return
 }

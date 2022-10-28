@@ -16,8 +16,8 @@ type Request struct {
 }
 
 func main() {
-	hostName := flag.String("hostname", "localhost", "hostname/ip of the server")
-	portNum := flag.String("port", "4240", "port number of the server")
+	hostName := flag.String("hostname", "124.160.115.141", "hostname/ip of the server")
+	portNum := flag.String("port", "18466", "port number of the server")
 
 	flag.Parse()
 
@@ -37,37 +37,34 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	//timeout := time.Duration(*timeoutDuration) * time.Millisecond
 
 	resp := make(chan string)
 
-	var size int
-	for size = 1; size < 1000; size++ {
-		message := Request{
-			Size: size,
-		}
-		b, err := json.Marshal(message)
-		if err != nil {
-			panic(nil)
-		}
+	var size int = 10000
+	message := Request{
+		Size: size,
+	}
+	b, err := json.Marshal(message)
+	if err != nil {
+		panic(nil)
+	}
 
-		log.Printf("Client: Sending '%s'\n", b)
-		_, err = stream.Write(b)
-		if err != nil {
-			panic(err)
-		}
+	log.Printf("Client: Sending '%s'\n", b)
+	_, err = stream.Write(b)
+	if err != nil {
+		panic(err)
+	}
 
-		log.Println("Done. Waiting for echo")
+	log.Println("Done. Waiting for echo")
 
-		go func() {
-			buff := make([]byte, size)
-			_, _ = io.ReadFull(stream, buff)
-			resp <- string(buff)
-		}()
-		select {
-		case reply := <-resp:
-			log.Printf("Client: Got '%s'\n", reply)
-		}
+	go func() {
+		buff := make([]byte, size)
+		_, _ = io.ReadFull(stream, buff)
+		resp <- string(buff)
+	}()
+	select {
+	case reply := <-resp:
+		log.Printf("Client: Got '%s'\n", reply)
 	}
 
 }
